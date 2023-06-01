@@ -1,3 +1,5 @@
+import * as monaco from "monaco-editor";
+
 let editor = null;
 
 const getEditor = () => {
