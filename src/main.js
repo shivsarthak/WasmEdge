@@ -144,13 +144,15 @@ window.addEventListener("load", async () => {
   console.log(await webcontainerInstance.fs.readdir("/pages"));
 });
 
+
 async function installDependencies() {
   // Install dependencies
   const installProcess = await webcontainerInstance.spawn("npm", ["install"]);
   installProcess.output.pipeTo(
+
     new WritableStream({
       write(data) {
-        console.log(data);
+        console.log(data)
       },
     })
   );
@@ -160,8 +162,15 @@ async function installDependencies() {
 
 async function startDevServer() {
   // Run `npm run start` to start the Express app
-  await webcontainerInstance.spawn("npm", ["run", "dev"]);
-
+  const process = await webcontainerInstance.spawn("npm", ["run", "dev"]);
+  const consoleStream = document.getElementById("shell");
+  process.output.pipeTo(
+    new WritableStream({
+      write(data) {
+        const colorRegex = /\x1B\[\d+m/g;
+        consoleStream.innerText += data.replace(colorRegex,'');
+      },
+    }));
   // Wait for `server-ready` event
   webcontainerInstance.on("server-ready", (port, url) => {
     iframeEl.src = url;
