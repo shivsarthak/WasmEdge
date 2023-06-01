@@ -3,6 +3,7 @@ import { WebContainer } from "@webcontainer/api";
 import { files } from "./files";
 import { getEditor } from "./monacoapi";
 import * as monaco from "monaco-editor";
+import getLanguageFromFileExtension from "./fileExtMap";
 
 /** @type {import('@webcontainer/api').WebContainer}  */
 let webcontainerInstance;
@@ -10,6 +11,7 @@ let webcontainerInstance;
 /** @type {monaco.editor | null}  */
 let editor = null;
 let currentFile = null;
+let editorMutexLock = false;
 
 const mapContainerFS = async () => {
   const rootPath = "/";
@@ -48,43 +50,80 @@ const mapContainerFS = async () => {
 async function updateActiveFile(filePath) {
   // Lock editor
   editor.updateOptions({ readOnly: true });
+  editorMutexLock = true;
 
   // change current file
   currentFile = filePath;
 
   // Get file contents
   let fileContents = await readFromContainerFS(filePath);
-  
+
   // uint8array to string
   fileContents = new TextDecoder("utf-8").decode(fileContents);
 
   // Set editor value
   editor.getModel().setValue(fileContents);
 
+  //get file extension
+  const fileExtension = filePath.split(".").pop();
+
+  // update language
+  monaco.editor.setModelLanguage(
+    editor.getModel(),
+    getLanguageFromFileExtension(fileExtension)
+  );
+
   // Unlock editor
   editor.updateOptions({ readOnly: false });
+  editorMutexLock = false;
 }
 
+const urlParams = new URLSearchParams(window.location.search);
+const repoUrl = urlParams.get("github");
+let mountFiles = files;
 window.addEventListener("load", async () => {
+  if (repoUrl) {
+    mountFiles = null;
+    // Get files from github
+    const [_, __, ___, userName, repoName] = repoUrl.split("/");
+    const url = `https://api.github.com/repos/${userName}/${repoName}/git/trees/main?recursive=1`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    for (let ent of data.tree) {
+      if (ent.type === "tree") {
+        webcontainerInstance.fs.mkdir(ent.path);
+      } else {
+        const rawContentUrl = `https://raw.githubusercontent.com/${userName}/${repoName}/main/${ent.path}`;
+        const res = await fetch(rawContentUrl);
+        const content = await res.text();
+        webcontainerInstance.fs.writeFile(ent.path, content);
+      }
+    }
+  }
   // Fix this later
-  currentFile = "/index.js";
+  currentFile = null;
   // Get editor will init the editor if it's not initialized yet
   editor = getEditor();
   // Set the editor value to the contents of index.js
-  editor.getModel().setValue(files["index.js"].file.contents);
+  editor.getModel().setValue("// Select a file to get started :)");
   // Write the contents of the editor to index.js
   editor.getModel().onDidChangeContent(() => {
+    if (!currentFile) return;
+    if (editorMutexLock) return;
+    
     const filePath = currentFile;
     const content = editor.getModel().getValue();
     writeToContainerFS(filePath, content);
   });
 
-  // Call only once
   webcontainerInstance = await WebContainer.boot();
-  await webcontainerInstance.mount(files);
+  // Call only once
+  if (mountFiles) await webcontainerInstance.mount(mountFiles);
 
   mapContainerFS();
   const exitCode = await installDependencies();
+  //const exitCode = 0;
   if (exitCode !== 0) {
     throw new Error("Installation failed");
   }
@@ -108,7 +147,7 @@ async function installDependencies() {
 
 async function startDevServer() {
   // Run `npm run start` to start the Express app
-  await webcontainerInstance.spawn("npm", ["run", "start"]);
+  await webcontainerInstance.spawn("npm", ["run", "dev"]);
 
   // Wait for `server-ready` event
   webcontainerInstance.on("server-ready", (port, url) => {
