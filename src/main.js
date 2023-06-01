@@ -82,6 +82,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const repoUrl = urlParams.get("github");
 let mountFiles = files;
 window.addEventListener("load", async () => {
+  // Call only once
+  webcontainerInstance = await WebContainer.boot();
   if (repoUrl) {
     mountFiles = null;
     // Get files from github
@@ -96,8 +98,19 @@ window.addEventListener("load", async () => {
       } else {
         const rawContentUrl = `https://raw.githubusercontent.com/${userName}/${repoName}/main/${ent.path}`;
         const res = await fetch(rawContentUrl);
-        const content = await res.text();
-        webcontainerInstance.fs.writeFile(ent.path, content);
+        const fileName = ent.path.split("/").pop();
+        const fileExtension = fileName.split(".").pop();
+        console.log(fileName, fileExtension);
+        let content = "";
+        if (
+          fileExtension == "png" ||
+          fileExtension == "jpeg" ||
+          fileExtension == "jpg" ||
+          fileExtension == "svg"
+        )
+          content = new Uint8Array(await res.arrayBuffer());
+        else content = await res.text();
+        await webcontainerInstance.fs.writeFile(ent.path, content);
       }
     }
   }
@@ -111,14 +124,12 @@ window.addEventListener("load", async () => {
   editor.getModel().onDidChangeContent(() => {
     if (!currentFile) return;
     if (editorMutexLock) return;
-    
+
     const filePath = currentFile;
     const content = editor.getModel().getValue();
     writeToContainerFS(filePath, content);
   });
 
-  webcontainerInstance = await WebContainer.boot();
-  // Call only once
   if (mountFiles) await webcontainerInstance.mount(mountFiles);
 
   mapContainerFS();
@@ -129,6 +140,8 @@ window.addEventListener("load", async () => {
   }
   mapContainerFS();
   startDevServer();
+  console.log(await webcontainerInstance.fs.readdir("/"));
+  console.log(await webcontainerInstance.fs.readdir("/pages"));
 });
 
 async function installDependencies() {
