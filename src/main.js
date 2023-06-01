@@ -25,12 +25,15 @@ const mapContainerFS = async () => {
 
   files.forEach((item) => {
     // File Div
+    // if (item.name == "node_modules") {
+    //   return
+    // }
     let fileDiv = document.createElement("div");
 
     // Set name
     fileDiv.innerHTML = item.name + (item.isDirectory() ? "/" : "");
     // Add classes
-    fileDiv.classList.add("px-6", "py-2", "border", "text-sm");
+    fileDiv.classList.add("px-6", "py-2", "text-sm");
 
     // Grey out directories
     const textColor = item.isDirectory() ? "text-gray-400" : "text-white";
@@ -74,7 +77,7 @@ async function expandDirectory(event, dirPath) {
       let fileDiv = document.createElement("div");
       fileDiv.innerHTML = item.name + (item.isDirectory() ? "/" : "");
       // Add classes
-      fileDiv.classList.add("px-6", "py-2", "border", "text-sm");
+      fileDiv.classList.add("px-6", "py-2", "text-sm");
       // Grey out directories
       const textColor = item.isDirectory() ? "text-gray-400" : "text-white";
       fileDiv.classList.add(textColor);
@@ -98,6 +101,8 @@ async function expandDirectory(event, dirPath) {
 }
 
 async function updateActiveFile(filePath) {
+  
+  document.getElementById('currentFile').innerText=filePath.replace("/","").replaceAll("/"," > ")
   // Lock editor
   editor.updateOptions({ readOnly: true });
   editorMutexLock = true;
@@ -126,6 +131,7 @@ async function updateActiveFile(filePath) {
   // Unlock editor
   editor.updateOptions({ readOnly: false });
   editorMutexLock = false;
+
 }
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -191,8 +197,10 @@ window.addEventListener("load", async () => {
   mapContainerFS();
 
   const input = document.getElementById("consoleInput");
-  input.addEventListener("keydown", (e) => {
-    if (e.key == "Enter") {
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key == 'Enter') {
+
       if (input.value.startsWith("npm run ")) {
         spawnProcess(input.value.replace("npm run ", ""));
       }

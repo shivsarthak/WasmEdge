@@ -20,12 +20,24 @@
   </div>
   <div class="flex flex-row" id="app">
     <!-- Files Tab -->
-    <div class=" w-64 bg-neutral-800 flex flex-col" id="files">
+    <div class=" w-64 bg-neutral-800 flex flex-col">
+      <button class=" text-center p-2 mt-4 mb-2 mx-2 bg-green-600 text-white rounded-md" id="createFile" > + Create
+        File</button>
+      <button class=" text-center p-2 mb-2 mx-2 bg-red-600 text-white rounded-md" id="deleteFile" > - Delete Current
+        File</button>
 
-
+      <div class="px-2 hidden">
+        <label class="text-white text-xs">Enter File Name</label>
+        <input type="text" class="w-full p-2 bg-neutral-700 text-white rounded-md" placeholder="/path/to/file.js" />
+      </div>
+      <div class="text-xs bg-neutral-900 text-white pl-2 py-1 ">EXPLORER</div>
+      <div id="files"></div>
     </div>
     <!-- Editor Tab -->
-    <div class="h-screen w-1/2" id="editor"></div>
+    <div class="h-screen max-h-screen overflow-hidden w-1/2">
+      <div class="text-xs bg-neutral-900 text-white pl-2 py-1 " id="currentFile">/</div>
+      <div class="h-full" id="editor"></div>
+    </div>
     <!-- Output -->
     <div class="flex-grow bg-gray-100">
       <div class="h-full max-h-screen flex flex-col">
@@ -37,14 +49,15 @@
         <div class=" border-t-0 w-full flex-grow">
           <iframe src="loading.html" class="w-full h-full"></iframe>
         </div>
-        <div class="bg-neutral-900 w-full h-72">
+        <div class="bg-neutral-900 w-full ">
           <div>
             <div class="bg-black p-2">
               <h3 class="text-sm text-white">Console</h3>
-              <input class=" text-white bg-neutral-900 text-xs p-2 mt-2 w-full" id="consoleInput" placeholder="Enter run command" type="text"></input>
+              <input class=" text-white bg-neutral-900 text-xs p-2 mt-2 w-full" id="consoleInput"
+                placeholder="Enter run command" type="text"></input>
             </div>
 
-            <div class="text-neutral-400 overflow-scroll text-xs" id="shell"></div>
+            <div class="text-neutral-400 overflow-y-scroll h-72 text-xs p-2 max-w-full" id="shell"></div>
           </div>
         </div>
       </div>
