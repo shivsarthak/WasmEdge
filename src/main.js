@@ -9,20 +9,22 @@ let webcontainerInstance;
 
 /** @type {monaco.editor | null}  */
 let editor = null;
+let currentFile = null;
 
 const mapContainerFS = async () => {
-  let files = await webcontainerInstance.fs.readdir("/", {
+  const rootPath = "/";
+
+  let files = await webcontainerInstance.fs.readdir(rootPath, {
     withFileTypes: true,
   });
   const filesTab = document.getElementById("files");
-
-  let tabs = "";
-  // make div
+  // Remove all children
+  while (filesTab.firstChild) filesTab.removeChild(filesTab.firstChild);
 
   files.forEach((item) => {
     // File Div
     let fileDiv = document.createElement("div");
-    
+
     // Set name
     fileDiv.innerHTML = item.name;
     // Add classes
@@ -33,25 +35,46 @@ const mapContainerFS = async () => {
     fileDiv.classList.add(textColor);
 
     // Add onclick to files
-    if (item.isFile()) fileDiv.onclick = () => {daddy(item.name);};
-  
+    if (item.isFile())
+      fileDiv.onclick = () => {
+        updateActiveFile(rootPath + item.name);
+      };
+
     // Add to files tab
     filesTab.appendChild(fileDiv);
   });
 };
 
-function daddy(str) {
-  console.log(str);
+async function updateActiveFile(filePath) {
+  // Lock editor
+  editor.updateOptions({ readOnly: true });
+
+  // change current file
+  currentFile = filePath;
+
+  // Get file contents
+  let fileContents = await readFromContainerFS(filePath);
+  
+  // uint8array to string
+  fileContents = new TextDecoder("utf-8").decode(fileContents);
+
+  // Set editor value
+  editor.getModel().setValue(fileContents);
+
+  // Unlock editor
+  editor.updateOptions({ readOnly: false });
 }
 
 window.addEventListener("load", async () => {
+  // Fix this later
+  currentFile = "/index.js";
   // Get editor will init the editor if it's not initialized yet
   editor = getEditor();
   // Set the editor value to the contents of index.js
   editor.getModel().setValue(files["index.js"].file.contents);
   // Write the contents of the editor to index.js
   editor.getModel().onDidChangeContent(() => {
-    const filePath = getActiveFilePath();
+    const filePath = currentFile;
     const content = editor.getModel().getValue();
     writeToContainerFS(filePath, content);
   });
@@ -96,12 +119,14 @@ async function startDevServer() {
 /**
  * @param {string} content
  */
-function getActiveFilePath() {
-  return "/index.js";
-}
 
 async function writeToContainerFS(filePath, content) {
   await webcontainerInstance.fs.writeFile(filePath, content);
+}
+
+async function readFromContainerFS(filePath) {
+  const content = await webcontainerInstance.fs.readFile(filePath);
+  return content;
 }
 
 /** @type {HTMLIFrameElement | null} */
