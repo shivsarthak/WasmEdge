@@ -83,6 +83,21 @@ const repoUrl = urlParams.get("github");
 let mountFiles = files;
 window.addEventListener("load", async () => {
   // Call only once
+  // Fix this later
+  currentFile = null;
+  // Get editor will init the editor if it's not initialized yet
+  editor = getEditor();
+  // Set the editor value to the contents of index.js
+  editor.getModel().setValue("// Select a file to get started :)");
+  // Write the contents of the editor to index.js
+  editor.getModel().onDidChangeContent(() => {
+    if (!currentFile) return;
+    if (editorMutexLock) return;
+
+    const filePath = currentFile;
+    const content = editor.getModel().getValue();
+    writeToContainerFS(filePath, content);
+  });
   webcontainerInstance = await WebContainer.boot();
   if (repoUrl) {
     mountFiles = null;
@@ -114,21 +129,6 @@ window.addEventListener("load", async () => {
       }
     }
   }
-  // Fix this later
-  currentFile = null;
-  // Get editor will init the editor if it's not initialized yet
-  editor = getEditor();
-  // Set the editor value to the contents of index.js
-  editor.getModel().setValue("// Select a file to get started :)");
-  // Write the contents of the editor to index.js
-  editor.getModel().onDidChangeContent(() => {
-    if (!currentFile) return;
-    if (editorMutexLock) return;
-
-    const filePath = currentFile;
-    const content = editor.getModel().getValue();
-    writeToContainerFS(filePath, content);
-  });
 
   if (mountFiles) await webcontainerInstance.mount(mountFiles);
 
