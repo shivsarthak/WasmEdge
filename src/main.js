@@ -183,12 +183,23 @@ window.addEventListener("load", async () => {
 
   mapContainerFS();
   const exitCode = await installDependencies();
+  iframeEl.src ="complete.html";
   //const exitCode = 0;
   if (exitCode !== 0) {
     throw new Error("Installation failed");
   }
   mapContainerFS();
-  startDevServer();
+
+
+  const input = document.getElementById("consoleInput");
+  input.addEventListener('keydown', (e) => {
+    if (e.key == 'Enter') {
+      if(input.value.startsWith("npm run ")){
+        spawnProcess(input.value.replace("npm run ",""));
+      }
+      input.value = "";
+    }
+  })
 });
 
 async function installDependencies() {
@@ -201,19 +212,19 @@ async function installDependencies() {
       },
     })
   );
-  // Wait for install command to exit
+  installProcess.exit
   return installProcess.exit;
 }
 
-async function startDevServer() {
+async function spawnProcess(command) {
   // Run `npm run start` to start the Express app
-  const process = await webcontainerInstance.spawn("npm", ["run", "dev"]);
+  const process = await webcontainerInstance.spawn("npm", ["run", command]);
   const consoleStream = document.getElementById("shell");
   process.output.pipeTo(
     new WritableStream({
       write(data) {
         const colorRegex = /\x1B\[\d+m/g;
-        consoleStream.innerText += data.replace(colorRegex, "");
+        consoleStream.innerText += data.replace(colorRegex, '');
       },
     })
   );
@@ -239,5 +250,3 @@ async function readFromContainerFS(filePath) {
 /** @type {HTMLIFrameElement | null} */
 const iframeEl = document.querySelector("iframe");
 
-/** @type {HTMLTextAreaElement | null} */
-const textareaEl = document.querySelector("textarea");
