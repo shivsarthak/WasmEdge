@@ -207,15 +207,19 @@ window.addEventListener("load", async () => {
       input.value = "";
     }
   });
+ 
 });
 
 async function installDependencies() {
   // Install dependencies
   const installProcess = await webcontainerInstance.spawn("npm", ["install"]);
+  const consoleStream = document.getElementById("shell");
   installProcess.output.pipeTo(
     new WritableStream({
       write(data) {
-        console.log(data);
+        const colorRegex = /\x1B\[\d+m/g;
+        consoleStream.innerText += data.replace(colorRegex, "");
+        consoleStream.scrollTop = consoleStream.scrollHeight;
       },
     })
   );
@@ -232,6 +236,7 @@ async function spawnProcess(command) {
       write(data) {
         const colorRegex = /\x1B\[\d+m/g;
         consoleStream.innerText += data.replace(colorRegex, "");
+        consoleStream.scrollTop = consoleStream.scrollHeight;
       },
     })
   );
@@ -278,3 +283,7 @@ async function addFileInFs(path, content) {
   }
   mapContainerFS();
 };
+
+document.getElementById("createFile").addEventListener("click", () => {
+  document.getElementById("addFileWrapperDiv").classList.remove("hidden");
+})
