@@ -314,3 +314,17 @@ document.getElementById("deleteFile").addEventListener('click',async(e)=>{
   await mapContainerFS();
 
 })
+
+
+// downloadButton
+document.getElementById("downloadButton").addEventListener("click", async () => {
+  let fileContents = await readFromContainerFS(currentFile);
+  fileContents = new TextDecoder("utf-8").decode(fileContents);
+  const blob = new Blob([fileContents], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = currentFile.split("/").pop();
+  a.click();
+  URL.revokeObjectURL(url);
+});
