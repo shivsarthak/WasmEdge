@@ -1,31 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="/stackblitz-favicon-editor.png"
-    />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My first WebContainers app</title>
-  </head>
-  <body>
-    <header>
-      <h1>Hello, World</h1>
-    </header>
-    <div id="app">
-      <div class="container">
-        <div class="editor">
-          <div id="core">
-            <div id="editor"></div>
-          </div>
-        </div>
-        <div class="preview">
-          <iframe src="loading.html"></iframe>
-        </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/stackblitz-favicon-editor.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WasmEdge</title>
+</head>
+
+<body>
+</div>
+  <div class="flex flex-row" id="app" >
+
+    <div class=" w-64 bg-neutral-800 flex flex-col" id="files" >
+    </div>
+    <div class="h-screen w-1/2" id="editor"></div>
+    <div class=""></div>
+      <div class="preview">
+        <iframe src="loading.html"></iframe>
       </div>
     </div>
-    <script type="module" src="src/main.js"></script>
-  </body>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+
 </html>
