@@ -56,15 +56,15 @@ async function expandDirectory(event, dirPath) {
   /** @type {HTMLDivElement | null} */
   const filesTab = target;
   event.stopPropagation();
-  console.log("called " + dirPath)
+  console.log("called " + dirPath);
   if (target.classList.contains("expanded")) {
-    console.log("removing")
+    console.log("removing");
     while (filesTab.firstElementChild) {
       filesTab.removeChild(filesTab.firstElementChild);
     }
     target.classList.remove("expanded");
   } else {
-    console.log("adding")
+    console.log("adding");
     const files = await webcontainerInstance.fs.readdir(dirPath, {
       withFileTypes: true,
     });
@@ -88,7 +88,7 @@ async function expandDirectory(event, dirPath) {
       if (item.isDirectory()) {
         fileDiv.onclick = (event) => {
           event.stopPropagation();
-          expandDirectory(event, dirPath + "/" + item.name );
+          expandDirectory(event, dirPath + "/" + item.name);
         };
       }
       filesTab.append(fileDiv);
@@ -183,23 +183,22 @@ window.addEventListener("load", async () => {
 
   mapContainerFS();
   const exitCode = await installDependencies();
-  iframeEl.src ="complete.html";
+  iframeEl.src = "complete.html";
   //const exitCode = 0;
   if (exitCode !== 0) {
     throw new Error("Installation failed");
   }
   mapContainerFS();
 
-
   const input = document.getElementById("consoleInput");
-  input.addEventListener('keydown', (e) => {
-    if (e.key == 'Enter') {
-      if(input.value.startsWith("npm run ")){
-        spawnProcess(input.value.replace("npm run ",""));
+  input.addEventListener("keydown", (e) => {
+    if (e.key == "Enter") {
+      if (input.value.startsWith("npm run ")) {
+        spawnProcess(input.value.replace("npm run ", ""));
       }
       input.value = "";
     }
-  })
+  });
 });
 
 async function installDependencies() {
@@ -212,7 +211,7 @@ async function installDependencies() {
       },
     })
   );
-  installProcess.exit
+  installProcess.exit;
   return installProcess.exit;
 }
 
@@ -224,7 +223,7 @@ async function spawnProcess(command) {
     new WritableStream({
       write(data) {
         const colorRegex = /\x1B\[\d+m/g;
-        consoleStream.innerText += data.replace(colorRegex, '');
+        consoleStream.innerText += data.replace(colorRegex, "");
       },
     })
   );
@@ -250,3 +249,24 @@ async function readFromContainerFS(filePath) {
 /** @type {HTMLIFrameElement | null} */
 const iframeEl = document.querySelector("iframe");
 
+async function addFileInFs(path, content) {
+  const pathArr = path.split("/");
+  const fileName = pathArr.pop();
+  const dirPath = pathArr.join("/");
+
+  if (dirPath) {
+    const path = dirPath.split("/");
+    let currentPath = "";
+    for (let i = 0; i < path.length; i++) {
+      currentPath += path[i] + "/";
+      try {
+        await webcontainerInstance.fs.mkdir(currentPath);
+      } catch (e) {
+        // Ignore :)
+        // console.log(e);
+      }
+    }
+    webcontainerInstance.fs.writeFile(dirPath + "/" + fileName, content);
+  }
+  mapContainerFS();
+};
