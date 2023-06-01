@@ -13,6 +13,7 @@ let editor = null;
 let currentFile = null;
 let editorMutexLock = false;
 
+
 const mapContainerFS = async () => {
   const rootPath = "/";
 
@@ -25,9 +26,9 @@ const mapContainerFS = async () => {
 
   files.forEach((item) => {
     // File Div
-    // if (item.name == "node_modules") {
-    //   return
-    // }
+    if (item.name == "node_modules") {
+      return
+    }
     let fileDiv = document.createElement("div");
 
     // Set name
@@ -166,9 +167,16 @@ window.addEventListener("load", async () => {
     for (let ent of data.tree) {
       if (ent.type === "tree") {
         webcontainerInstance.fs.mkdir(ent.path);
+
       } else {
         const rawContentUrl = `https://raw.githubusercontent.com/${userName}/${repoName}/main/${ent.path}`;
         const res = await fetch(rawContentUrl);
+        const consoleStream = document.getElementById("shell");
+        const colorRegex = /\x1B\[\d+m/g;
+        consoleStream.innerText += `Fetched ${ent.path} \n`;
+        consoleStream.scrollTop = consoleStream.scrollHeight;
+
+
         const fileName = ent.path.split("/").pop();
         const fileExtension = fileName.split(".").pop();
         let content = "";
@@ -201,8 +209,8 @@ window.addEventListener("load", async () => {
   input.addEventListener('keydown', (e) => {
     if (e.key == 'Enter') {
 
-      if (input.value.startsWith("npm run ")) {
-        spawnProcess(input.value.replace("npm run ", ""));
+      if (input.value.startsWith("npm ")) {
+        spawnProcess(input.value.replace("npm ", ""));
       }
       input.value = "";
     }
@@ -218,7 +226,7 @@ async function installDependencies() {
     new WritableStream({
       write(data) {
         const colorRegex = /\x1B\[\d+m/g;
-        consoleStream.innerText += data.replace(colorRegex, "");
+        consoleStream.innerText += data.replace(colorRegex, "")+"\n";
         consoleStream.scrollTop = consoleStream.scrollHeight;
       },
     })
@@ -229,13 +237,14 @@ async function installDependencies() {
 
 async function spawnProcess(command) {
   // Run `npm run start` to start the Express app
-  const process = await webcontainerInstance.spawn("npm", ["run", command]);
+  const process = await webcontainerInstance.spawn("npm", command.split(" "));
+  console.log(command.split(" "));
   const consoleStream = document.getElementById("shell");
   process.output.pipeTo(
     new WritableStream({
       write(data) {
         const colorRegex = /\x1B\[\d+m/g;
-        consoleStream.innerText += data.replace(colorRegex, "");
+        consoleStream.innerText += data.replace(colorRegex, "")+"\n";
         consoleStream.scrollTop = consoleStream.scrollHeight;
       },
     })
@@ -243,6 +252,7 @@ async function spawnProcess(command) {
   // Wait for `server-ready` event
   webcontainerInstance.on("server-ready", (port, url) => {
     iframeEl.src = url;
+    document.getElementById("linkHref").innerHTML = `<a href=${url} target="_blank">Open Link in new tab</a>`;
   });
 }
 
@@ -297,6 +307,10 @@ document.getElementById("createFileInput").addEventListener('keydown', async (e)
     document.getElementById("addFileWrapperDiv").classList.add("hidden");
     e.target.value = "";
   }
+})
 
+document.getElementById("deleteFile").addEventListener('click',async(e)=>{
+  await webcontainerInstance.fs.rm(currentFile);
+  await mapContainerFS();
 
 })
