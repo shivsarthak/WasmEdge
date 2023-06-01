@@ -34,7 +34,7 @@ const mapContainerFS = async () => {
     // Set name
     fileDiv.innerHTML = item.name + (item.isDirectory() ? "/" : "");
     // Add classes
-    fileDiv.classList.add("px-6", "py-2", "text-sm");
+    fileDiv.classList.add("px-6", "py-2", "text-sm","cursor-pointer","hover:bg-neutral-900" );
 
     // Grey out directories
     const textColor = item.isDirectory() ? "text-gray-400" : "text-white";
@@ -78,7 +78,7 @@ async function expandDirectory(event, dirPath) {
       let fileDiv = document.createElement("div");
       fileDiv.innerHTML = item.name + (item.isDirectory() ? "/" : "");
       // Add classes
-      fileDiv.classList.add("px-6", "py-2", "text-sm");
+      fileDiv.classList.add("px-6", "py-2", "text-sm","cursor-pointer","hover:bg-neutral-800");
       // Grey out directories
       const textColor = item.isDirectory() ? "text-gray-400" : "text-white";
       fileDiv.classList.add(textColor);
@@ -312,8 +312,9 @@ document.getElementById("createFileInput").addEventListener('keydown', async (e)
 document.getElementById("deleteFile").addEventListener('click',async(e)=>{
   await webcontainerInstance.fs.rm(currentFile);
   await mapContainerFS();
-
 })
+
+
 
 
 // downloadButton
@@ -328,3 +329,8 @@ document.getElementById("downloadButton").addEventListener("click", async () => 
   a.click();
   URL.revokeObjectURL(url);
 });
+
+document.getElementById("runDev").addEventListener('click',async(e)=>{
+  document.getElementById("runDev").disabled = true;
+  spawnProcess("run dev");
+})
