@@ -11,20 +11,36 @@ let webcontainerInstance;
 let editor = null;
 
 const mapContainerFS = async () => {
-  let files = await webcontainerInstance.fs.readdir('/', { withFileTypes: true });
-  const filesTab = document.getElementById("files");
-  let tabs = ""
-  files.forEach((item) => {
-    if(item.isDirectory()){
-      tabs += `<div class="text-gray-400 px-6 py-2 border text-sm">#${item.name}</div>`;
-    }else {
-      tabs += `<div class="text-white px-6 py-2 border text-sm" onclick="daddy('${item.name}')">${item.name}</div>`;
-    }
+  let files = await webcontainerInstance.fs.readdir("/", {
+    withFileTypes: true,
   });
-  filesTab.innerHTML = tabs;
-}
+  const filesTab = document.getElementById("files");
 
-function daddy (str) {
+  let tabs = "";
+  // make div
+
+  files.forEach((item) => {
+    // File Div
+    let fileDiv = document.createElement("div");
+    
+    // Set name
+    fileDiv.innerHTML = item.name;
+    // Add classes
+    fileDiv.classList.add("px-6", "py-2", "border", "text-sm");
+
+    // Grey out directories
+    const textColor = item.isDirectory() ? "text-gray-400" : "text-white";
+    fileDiv.classList.add(textColor);
+
+    // Add onclick to files
+    if (item.isFile()) fileDiv.onclick = () => {daddy(item.name);};
+  
+    // Add to files tab
+    filesTab.appendChild(fileDiv);
+  });
+};
+
+function daddy(str) {
   console.log(str);
 }
 
@@ -36,7 +52,7 @@ window.addEventListener("load", async () => {
   // Write the contents of the editor to index.js
   editor.getModel().onDidChangeContent(() => {
     const filePath = getActiveFilePath();
-    const content = editor.getModel().getValue(); 
+    const content = editor.getModel().getValue();
     writeToContainerFS(filePath, content);
   });
 
@@ -51,9 +67,7 @@ window.addEventListener("load", async () => {
   }
   mapContainerFS();
   startDevServer();
-
 });
-
 
 async function installDependencies() {
   // Install dependencies
@@ -76,9 +90,7 @@ async function startDevServer() {
   // Wait for `server-ready` event
   webcontainerInstance.on("server-ready", (port, url) => {
     iframeEl.src = url;
-
   });
-  
 }
 
 /**
@@ -97,5 +109,3 @@ const iframeEl = document.querySelector("iframe");
 
 /** @type {HTMLTextAreaElement | null} */
 const textareaEl = document.querySelector("textarea");
-
-
