@@ -101,8 +101,8 @@ async function expandDirectory(event, dirPath) {
 }
 
 async function updateActiveFile(filePath) {
-  
-  document.getElementById('currentFile').innerText=filePath.replace("/","").replaceAll("/"," > ")
+
+  document.getElementById('currentFile').innerText = filePath.replace("/", "").replaceAll("/", " > ")
   // Lock editor
   editor.updateOptions({ readOnly: true });
   editorMutexLock = true;
@@ -207,7 +207,7 @@ window.addEventListener("load", async () => {
       input.value = "";
     }
   });
- 
+
 });
 
 async function installDependencies() {
@@ -279,11 +279,24 @@ async function addFileInFs(path, content) {
         // console.log(e);
       }
     }
-    webcontainerInstance.fs.writeFile(dirPath + "/" + fileName, content);
+    
   }
+  webcontainerInstance.fs.writeFile(dirPath + "/" + fileName, content);
   mapContainerFS();
 };
 
 document.getElementById("createFile").addEventListener("click", () => {
   document.getElementById("addFileWrapperDiv").classList.remove("hidden");
+})
+
+document.getElementById("createFileInput").addEventListener('keydown', async (e) => {
+
+  if (e.key == 'Enter') {
+    console.log(e.target.value)
+    await addFileInFs(e.target.value,"");
+    document.getElementById("addFileWrapperDiv").classList.add("hidden");
+    e.target.value = "";
+  }
+
+
 })
