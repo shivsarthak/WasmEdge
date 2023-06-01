@@ -1,15 +1,21 @@
 import './style.css'
 import { WebContainer } from '@webcontainer/api';
 import { files } from './files';
+import { getEditor } from './monacoapi';
 
 /** @type {import('@webcontainer/api').WebContainer}  */
 let webcontainerInstance;
-
+let editor = null;
 window.addEventListener('load', async () => {
-  textareaEl.value = files['index.js'].file.contents;
-  textareaEl.addEventListener('input', (e) => {
-    writeIndexJS(e.currentTarget.value);
-  });
+
+  // Get editor will init the editor if it's not initialized yet
+  editor = getEditor();
+  // Set the editor value to the contents of index.js
+  editor.getModel().setValue(files['index.js'].file.contents);
+  // Write the contents of the editor to index.js
+  editor.getModel().onDidChangeContent((event) => {
+    writeIndexJS(editor.getModel().getValue());
+	});
 
   // Call only once
   webcontainerInstance = await WebContainer.boot();

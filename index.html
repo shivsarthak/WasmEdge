@@ -2,9 +2,51 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/stackblitz-favicon-editor.png" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/stackblitz-favicon-editor.png"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My first WebContainers app</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"
+      integrity="sha512-iZIBSs+gDyTH0ZhUem9eQ1t4DcEn2B9lHxfRMeGQhyNdSUz+rb+5A3ummX6DQTOIs1XK0gOteOg/LPtSo9VJ+w=="
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      data-name="vs/editor/editor.main"
+      href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.25.2/min/vs/editor/editor.main.min.css"
+      integrity="sha512-Aplc5M1v/ytxu11jVmWdmKQLn3SLeNHcv8ii1tWmMl61RFoGC5AXM1qSVDIpQorqQmY9FmO1U2Mw1PopeSCGrA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script>
+      var require = {
+        paths: {
+          vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.25.2/min/vs",
+        },
+      };
+    </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.25.2/min/vs/loader.min.js"
+      integrity="sha512-SExj71Cw3B9C9EE8BC/ad3AKia5zQXDj/2SM4THgkeKh5GIFZhKM/R3uclUG8YZwJrjcVhydAlIHmfNvsBCKZA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.25.2/min/vs/editor/editor.main.js"
+      integrity="sha512-cc8MosBh6Iu+AcufFZYRhPVXE88eysd9SiNFB8YJm40+KaoRZMP64nRXiBf5P/uLzwwTCLYo/PYAh4vBRI8wUg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.25.2/min/vs/editor/editor.main.nls.min.js"
+      integrity="sha512-/Lpr8XyEnghf+eu5/ytlh92qc6gEWUodmPjmxRFKqBG1ZzS0Qif87TFRnRy7BMf6epqv2NdE13JYvnvrSPVAvQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
   </head>
   <body>
     <header>
@@ -13,7 +55,9 @@
     <div id="app">
       <div class="container">
         <div class="editor">
-          <textarea>I am a textarea</textarea>
+          <div id="core">
+            <div id="editor"></div>
+          </div>
         </div>
         <div class="preview">
           <iframe src="loading.html"></iframe>

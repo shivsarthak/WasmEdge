@@ -76,3 +76,7 @@ textarea {
   font-size: 80%;
   text-decoration: underline;
 }
+
+#editor {
+  height: 100vh;
+}
