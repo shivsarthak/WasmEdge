@@ -28,7 +28,7 @@ const mapContainerFS = async () => {
     let fileDiv = document.createElement("div");
 
     // Set name
-    fileDiv.innerHTML = item.name;
+    fileDiv.innerHTML = item.name + (item.isDirectory() ? "/" : "");
     // Add classes
     fileDiv.classList.add("px-6", "py-2", "border", "text-sm");
 
@@ -41,11 +41,61 @@ const mapContainerFS = async () => {
       fileDiv.onclick = () => {
         updateActiveFile(rootPath + item.name);
       };
+    if (item.isDirectory())
+      fileDiv.onclick = (event) => {
+        expandDirectory(event, rootPath + item.name);
+      };
 
     // Add to files tab
     filesTab.appendChild(fileDiv);
   });
 };
+
+async function expandDirectory(event, dirPath) {
+  const target = event.target;
+  /** @type {HTMLDivElement | null} */
+  const filesTab = target;
+  event.stopPropagation();
+  console.log("called " + dirPath)
+  if (target.classList.contains("expanded")) {
+    console.log("removing")
+    while (filesTab.firstElementChild) {
+      filesTab.removeChild(filesTab.firstElementChild);
+    }
+    target.classList.remove("expanded");
+  } else {
+    console.log("adding")
+    const files = await webcontainerInstance.fs.readdir(dirPath, {
+      withFileTypes: true,
+    });
+    target.classList.add("expanded");
+    files.forEach((item) => {
+      // File Div
+      let fileDiv = document.createElement("div");
+      fileDiv.innerHTML = item.name + (item.isDirectory() ? "/" : "");
+      // Add classes
+      fileDiv.classList.add("px-6", "py-2", "border", "text-sm");
+      // Grey out directories
+      const textColor = item.isDirectory() ? "text-gray-400" : "text-white";
+      fileDiv.classList.add(textColor);
+      // Add onclick to files
+      if (item.isFile()) {
+        fileDiv.onclick = (e) => {
+          e.stopPropagation();
+          updateActiveFile(dirPath + "/" + item.name);
+        };
+      }
+      if (item.isDirectory()) {
+        fileDiv.onclick = (event) => {
+          event.stopPropagation();
+          expandDirectory(event, dirPath + "/" + item.name );
+        };
+      }
+      filesTab.append(fileDiv);
+      // Add to files tab
+    });
+  }
+}
 
 async function updateActiveFile(filePath) {
   // Lock editor
@@ -115,7 +165,6 @@ window.addEventListener("load", async () => {
         const res = await fetch(rawContentUrl);
         const fileName = ent.path.split("/").pop();
         const fileExtension = fileName.split(".").pop();
-        console.log(fileName, fileExtension);
         let content = "";
         if (
           fileExtension == "png" ||
@@ -140,19 +189,15 @@ window.addEventListener("load", async () => {
   }
   mapContainerFS();
   startDevServer();
-  console.log(await webcontainerInstance.fs.readdir("/"));
-  console.log(await webcontainerInstance.fs.readdir("/pages"));
 });
-
 
 async function installDependencies() {
   // Install dependencies
   const installProcess = await webcontainerInstance.spawn("npm", ["install"]);
   installProcess.output.pipeTo(
-
     new WritableStream({
       write(data) {
-        console.log(data)
+        console.log(data);
       },
     })
   );
@@ -168,9 +213,10 @@ async function startDevServer() {
     new WritableStream({
       write(data) {
         const colorRegex = /\x1B\[\d+m/g;
-        consoleStream.innerText += data.replace(colorRegex,'');
+        consoleStream.innerText += data.replace(colorRegex, "");
       },
-    }));
+    })
+  );
   // Wait for `server-ready` event
   webcontainerInstance.on("server-ready", (port, url) => {
     iframeEl.src = url;
